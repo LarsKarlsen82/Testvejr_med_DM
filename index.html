@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather App</title>
+</head>
+<body>
+<h1>Weather App</h1>
+<button onClick="toggleMode()" id="modeButton" style="background-color: white; color: black;">Dark-mode</button>
+
+<h1>Krish tekst</h1>
+<p>Dette er en eksempeltekst.</p>
+<div>
+<label for="cityInput">Enter City:</label>
+<input type="text" id="cityInput" placeholder="Enter a city name">
+<button id="searchButton" onclick="searchWeather()">Search</button>
+</div>
+<div id="weatherInfo"></div>
+
+<script>
+// Darkmode knap
+let darkMode = false;
+
+function toggleMode() {
+  darkMode = !darkMode;
+  const body = document.body;
+  const button = document.getElementById('modeButton');
+
+  if (darkMode) {
+    body.style.transition = 'background-color 1s, color 1s';
+    button.style.transition = 'background-color 1s, color 1s';
+
+    body.style.backgroundColor = 'black';
+    body.style.color = 'gray';
+    button.style.backgroundColor = 'black';
+    button.style.color = 'gray';
+    
+    // Change the button text to "Normal"
+    button.textContent = 'Normal-mode';
+    
+    // Du kan også anvende andre ændringer for dark mode her.
+  } else {
+    body.style.transition = 'background-color 2,5s, color 2,5s';
+    button.style.transition = 'background-color 2,5s, color 2,5s';
+
+    body.style.backgroundColor = 'white';
+    body.style.color = 'black';
+    button.style.backgroundColor = 'white';
+    button.style.color = 'black';
+    
+    // Change the button text back to "Dark-mode"
+    button.textContent = 'Dark-mode';
+    
+    // Gendan standardfarver her.
+  }
+
+}
+
+
+// Function to search for a city and get its coordinates using Nominatim
+async function searchCity(city) {
+const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`;
+const response = await fetch(nominatimUrl);
+const data = await response.json();
+if (data.length > 0) {
+const { lat, lon } = data[0];
+return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+} else {
+throw new Error('City not found.');
+}
+}
+
+// Function to fetch weather data given latitude and longitude
+function fetchWeatherData(latitude, longitude) {
+// Replace this with your weather API endpoint
+const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,relativehumidity_2m,precipitation`;
+return fetch(apiUrl)
+.then(response => response.json());
+}
+
+// Function to process and display weather data
+function processAndDisplayWeatherData(data) {
+// Replace this with your logic to process and display weather data
+const weatherInfoDiv = document.getElementById('weatherInfo');
+
+// Clear the existing weather information
+weatherInfoDiv.innerHTML = '';
+
+// Extract temperature, relative humidity, and precipitation data
+const temperatureData = data.hourly.temperature_2m;
+const relativeHumidityData = data.hourly.relativehumidity_2m;
+const precipitationData = data.hourly.precipitation;
+
+// Display temperature
+const temperatureDiv = document.createElement('div');
+temperatureDiv.innerHTML = `<p>Temperature Data: ${JSON.stringify(temperatureData)}</p>`;
+weatherInfoDiv.appendChild(temperatureDiv);
+
+// Display relative humidity
+const relativeHumidityDiv = document.createElement('div');
+relativeHumidityDiv.innerHTML = `<p>Relative Humidity Data: ${JSON.stringify(relativeHumidityData)}</p>`;
+weatherInfoDiv.appendChild(relativeHumidityDiv);
+
+// Display precipitation
+const precipitationDiv = document.createElement('div');
+precipitationDiv.innerHTML = `<p>Precipitation Data: ${JSON.stringify(precipitationData)}</p>`;
+weatherInfoDiv.appendChild(precipitationDiv);
+}
+
+
+// Function to handle the click event when the "Search" button is clicked
+async function searchWeather() {
+const cityInput = document.getElementById('cityInput');
+const cityName = cityInput.value.trim();
+
+if (cityName) {
+try {
+const coordinates = await searchCity(cityName);
+const { latitude, longitude } = coordinates;
+fetchWeatherData(latitude, longitude)
+.then(processAndDisplayWeatherData)
+.catch((error) => {
+// Handle errors here if needed
+console.error('Error fetching weather data:', error);
+});
+} catch (error) {
+// Handle city not found or geocoding errors
+console.error('Error searching for city:', error);
+}
+} else {
+alert('Please enter a city name.');
+}
+}
+</script>
+</body>
+</html>
